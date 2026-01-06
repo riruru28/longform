@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>longform</title>
+  <meta name="description" content="Speculate on attention momentum — a thought experiment turned into a living interface." />
+  <!-- Tailwind CDN (for quick prototyping) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-neutral-950 text-neutral-100">
+  <!-- Top Nav -->
+  <header class="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/80 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-800">
+          <span class="text-sm font-black">lf</span>
+        </div>
+        <div>
+          <div class="text-sm font-semibold tracking-wide">longform</div>
+          <div class="text-xs text-neutral-400">trade ideas, not people</div>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-2">
+        <button data-tab="markets" class="tab-btn rounded-xl px-4 py-2 text-sm font-medium text-neutral-200 hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-700">
+          Markets
+        </button>
+        <button data-tab="portfolio" class="tab-btn rounded-xl px-4 py-2 text-sm font-medium text-neutral-200 hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-700">
+          Portfolio
+        </button>
+        <button data-tab="leaderboard" class="tab-btn rounded-xl px-4 py-2 text-sm font-medium text-neutral-200 hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-700">
+          Leaderboard
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <!-- User Stats Bar -->
+    <section class="mb-8">
+      <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-5">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-neutral-800 flex items-center justify-center">
+              <span class="text-sm">👤</span>
+            </div>
+            <div>
+              <div class="text-sm font-semibold" id="user-name">User</div>
+              <div class="text-xs text-neutral-400">Forecaster score: <span id="user-score">—</span></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-3">
+              <div class="text-[11px] text-neutral-400">Balance</div>
+              <div class="text-sm font-semibold" id="user-balance">—</div>
+            </div>
+            <div class="rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-3">
+              <div class="text-[11px] text-neutral-400">Open Positions</div>
+              <div class="text-sm font-semibold" id="user-positions">—</div>
+            </div>
+            <div class="rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-3">
+              <div class="text-[11px] text-neutral-400">Win Rate</div>
+              <div class="text-sm font-semibold" id="user-winrate">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKETS -->
+    <section id="tab-markets" class="tab-panel space-y-8">
+      <!-- Create Market -->
+      <div class="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-6">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold">Create a Market</h2>
+            <p class="text-sm text-neutral-400">Paste a tweet or thread URL to start a new attention market.</p>
+          </div>
+          <div class="text-xs text-neutral-500">play money • no payouts</div>
+        </div>
+
+        <form id="create-market-form" class="flex flex-col gap-3 sm:flex-row">
+          <input
+            id="tweet-url"
+            type="url"
+            required
+            placeholder="https://x.com/.../status/..."
+            class="w-full flex-1 rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-700"
+          />
+          <button
+            type="submit"
+            class="rounded-xl bg-neutral-100 px-5 py-3 text-sm font-semibold text-neutral-950 hover:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
+          >
+            Create
+          </button>
+        </form>
+      </div>
+
+      <!-- Live Markets -->
+      <div>
+        <div class="mb-6 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800">
+              <span class="text-sm">⚡</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold">Live Markets</h2>
+              <p class="text-sm text-neutral-400">Speculate on attention momentum</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-neutral-400">
+            <span>🕒</span>
+            <span>Updated just now</span>
+          </div>
+        </div>
+
+        <div id="markets-grid" class="grid gap-6 md:grid-cols-2"></div>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section id="tab-portfolio" class="tab-panel hidden space-y-8">
+      <div>
+        <div class="mb-6 flex items-center gap-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800">
+            <span class="text-sm">📈</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Active Positions</h2>
+            <p class="text-sm text-neutral-400">Your open trades and their performance</p>
+          </div>
+        </div>
+
+        <div id="positions-list" class="space-y-3"></div>
+
+        <div id="positions-empty" class="hidden rounded-2xl border border-dashed border-neutral-800 bg-neutral-900/20 p-12 text-center">
+          <p class="text-neutral-400">No active positions yet. Start trading to see them here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section id="tab-leaderboard" class="tab-panel hidden space-y-8">
+      <div>
+        <div class="mb-6 flex items-center gap-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-500/15">
+            <span class="text-lg">🏆</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Top Forecasters</h2>
+            <p class="text-sm text-neutral-400">Best predictors of attention momentum</p>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/20">
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-neutral-800 text-xs uppercase tracking-wider text-neutral-400">
+              <tr>
+                <th class="px-5 py-4">Rank</th>
+                <th class="px-5 py-4">Forecaster</th>
+                <th class="px-5 py-4">Accuracy</th>
+                <th class="px-5 py-4">PnL (points)</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Trade Modal -->
+  <div id="trade-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/70"></div>
+
+    <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2">
+      <div class="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl">
+        <div class="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs text-neutral-400">Trade</div>
+            <h3 class="text-lg font-bold" id="modal-title">—</h3>
+            <p class="mt-1 text-sm text-neutral-400" id="modal-subtitle">—</p>
+          </div>
+          <button id="modal-close" class="rounded-xl border border-neutral-800 px-3 py-2 text-sm hover:bg-neutral-900">✕</button>
+        </div>
+
+        <div class="rounded-xl border border-neutral-800 bg-neutral-900/20 p-4">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-neutral-400">Position</span>
+            <span class="font-semibold" id="modal-type">—</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-sm">
+            <span class="text-neutral-400">Current price</span>
+            <span class="font-semibold" id="modal-price">—</span>
+          </div>
+        </div>
+
+        <form id="trade-form" class="mt-4 space-y-3">
+          <label class="block text-sm text-neutral-300">Size (points)</label>
+          <input
+            id="trade-size"
+            type="number"
+            min="1"
+            step="1"
+            value="100"
+            class="w-full rounded-xl border border-neutral-800 bg-neutral-950/40 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-700"
+          />
+          <button
+            type="submit"
+            class="w-full rounded-xl bg-neutral-100 px-5 py-3 text-sm font-semibold text-neutral-950 hover:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
+          >
+            Confirm trade
+          </button>
+          <p class="text-xs text-neutral-500">
+            This is speculative play, not financial advice. (Also: it’s not real money.)
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 z-[60] hidden -translate-x-1/2">
+    <div class="pointer-events-auto rounded-2xl border border-neutral-800 bg-neutral-950 px-5 py-4 shadow-xl">
+      <div class="text-sm font-semibold" id="toast-title">—</div>
+      <div class="mt-1 text-xs text-neutral-400" id="toast-desc">—</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-neutral-800 bg-neutral-900/10">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6 lg:px-8">
+      <p class="text-sm text-neutral-400">A thought experiment turned into a living interface.</p>
+      <p class="text-xs text-neutral-500">This is speculative play, not financial advice.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Mock Data (placeholder) ----
+    const mockUser = {
+      name: "Riya",
+      score: 1284,
+      balance: 5000,
+      openPositions: 3,
+      winRate: "58%"
+    };
+
+    const mockMarkets = [
+      {
+        id: "m1",
+        title: "Will this thread stay hot for 24h?",
+        subtitle: "A thread about the attention economy and why it’s already a market.",
+        url: "https://x.com/example/status/123",
+        price: 0.61,
+        longLiquidity: 4200,
+        shortLiquidity: 2700,
+        tags: ["thread", "momentum"]
+      },
+      {
+        id: "m2",
+        title: "This tweet will get ratio’d (or explode)",
+        subtitle: "Hot take on founders shipping vibes vs shipping systems.",
+        url: "https://x.com/example/status/456",
+        price: 0.48,
+        longLiquidity: 3100,
+        shortLiquidity: 3500,
+        tags: ["tweet", "volatility"]
+      },
+      {
+        id: "m3",
+        title: "AI agent marketing is not a meme (yet)",
+        subtitle: "Prediction: this narrative keeps compounding for weeks.",
+        url: "https://x.com/example/status/789",
+        price: 0.57,
+        longLiquidity: 5600,
+        shortLiquidity: 1800,
+        tags: ["narrative", "AI"]
+      },
+      {
+        id: "m4",
+        title: "Web3 onboarding via social-first products",
+        subtitle: "Does this angle keep climbing or fade into noise?",
+        url: "https://x.com/example/status/101112",
+        price: 0.52,
+        longLiquidity: 2500,
+        shortLiquidity: 2400,
+        tags: ["product", "growth"]
+      }
+    ];
+
+    const mockPositions = [
+      { id: "p1", marketId: "m1", side: "LONG", size: 200, entry: 0.55, now: 0.61 },
+      { id: "p2", marketId: "m2", side: "SHORT", size: 150, entry: 0.50, now: 0.48 },
+      { id: "p3", marketId: "m3", side: "LONG", size: 300, entry: 0.49, now: 0.57 }
+    ];
+
+    const mockForecasters = [
+      { name: "quietquants", accuracy: "71%", pnl: 1940 },
+      { name: "threadrunner", accuracy: "68%", pnl: 1510 },
+      { name: "coldtakesonly", accuracy: "66%", pnl: 1225 },
+      { name: "ratiooracle", accuracy: "63%", pnl: 990 },
+      { name: "driftmaxxer", accuracy: "61%", pnl: 740 }
+    ];
+
+    // ---- Simple State ----
+    let activeTab = "markets";
+    let selectedMarket = null;
+    let tradeType = null;
+
+    // ---- Helpers ----
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function setActiveTab(tab) {
+      activeTab = tab;
+      $$(".tab-panel").forEach(p => p.classList.add("hidden"));
+      $("#tab-" + tab).classList.remove("hidden");
+
+      $$(".tab-btn").forEach(b => b.classList.remove("bg-neutral-900"));
+      const btn = document.querySelector(`[data-tab="${tab}"]`);
+      if (btn) btn.classList.add("bg-neutral-900");
+    }
+
+    function showToast(title, desc) {
+      $("#toast-title").textContent = title;
+      $("#toast-desc").textContent = desc || "";
+      const toast = $("#toast");
+      toast.classList.remove("hidden");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.add("hidden"), 2200);
+    }
+
+    function openModal(market, type) {
+      selectedMarket = market;
+      tradeType = type;
+      $("#modal-title").textContent = market.title;
+      $("#modal-subtitle").textContent = market.subtitle;
+      $("#modal-type").textContent = type.toUpperCase();
+      $("#modal-price").textContent = market.price.toFixed(2);
+      $("#trade-modal").classList.remove("hidden");
+      $("#trade-size").focus();
+    }
+
+    function closeModal() {
+      $("#trade-modal").classList.add("hidden");
+      selectedMarket = null;
+      tradeType = null;
+    }
+
+    function renderUser() {
+      $("#user-name").textContent = mockUser.name;
+      $("#user-score").textContent = mockUser.score;
+      $("#user-balance").textContent = mockUser.balance.toLocaleString() + " pts";
+      $("#user-positions").textContent = mockUser.openPositions;
+      $("#user-winrate").textContent = mockUser.winRate;
+    }
+
+    function renderMarkets() {
+      const grid = $("#markets-grid");
+      grid.innerHTML = "";
+      mockMarkets.forEach((m) => {
+        const longPct = (m.longLiquidity / (m.longLiquidity + m.shortLiquidity)) * 100;
+        const shortPct = 100 - longPct;
+
+        const card = document.createElement("div");
+        card.className = "rounded-2xl border border-neutral-800 bg-neutral-900/20 p-6 hover:bg-neutral-900/30 transition";
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold">${m.title}</h3>
+              <p class="mt-1 text-sm text-neutral-400">${m.subtitle}</p>
+            </div>
+            <a href="${m.url}" target="_blank" rel="noreferrer" class="text-xs text-neutral-400 hover:text-neutral-200 underline underline-offset-4">
+              view
+            </a>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/30 p-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-neutral-400">Attention price</span>
+              <span class="font-semibold">${m.price.toFixed(2)}</span>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-center justify-between text-xs text-neutral-500">
+                <span>Long liquidity: ${m.longLiquidity.toLocaleString()}</span>
+                <span>Short liquidity: ${m.shortLiquidity.toLocaleString()}</span>
+              </div>
+              <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-800">
+                <div class="h-full bg-neutral-200" style="width:${longPct}%;"></div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-xs text-neutral-500">
+                <span>LONG ${longPct.toFixed(0)}%</span>
+                <span>SHORT ${shortPct.toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            ${m.tags.map(t => `<span class="rounded-full border border-neutral-800 bg-neutral-950/20 px-3 py-1 text-[11px] text-neutral-300">${t}</span>`).join("")}
+          </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <button class="trade-btn rounded-xl bg-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-950 hover:bg-white" data-id="${m.id}" data-type="long">
+              Long
+            </button>
+            <button class="trade-btn rounded-xl border border-neutral-800 bg-neutral-950/20 px-4 py-3 text-sm font-semibold text-neutral-100 hover:bg-neutral-900" data-id="${m.id}" data-type="short">
+              Short
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      $$(".trade-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          const type = btn.getAttribute("data-type");
+          const market = mockMarkets.find(x => x.id === id);
+          if (market) openModal(market, type);
+        });
+      });
+    }
+
+    function renderPositions() {
+      const list = $("#positions-list");
+      const empty = $("#positions-empty");
+      list.innerHTML = "";
+
+      if (!mockPositions.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      mockPositions.forEach((p) => {
+        const m = mockMarkets.find(x => x.id === p.marketId);
+        const pnl = (p.side === "LONG")
+          ? (p.now - p.entry) * p.size
+          : (p.entry - p.now) * p.size;
+
+        const row = document.createElement("div");
+        row.className = "rounded-2xl border border-neutral-800 bg-neutral-900/20 p-5";
+        row.innerHTML = `
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div class="text-sm font-semibold">${m ? m.title : "Market"}</div>
+              <div class="mt-1 text-xs text-neutral-400">
+                ${p.side} • Size ${p.size} pts • Entry ${p.entry.toFixed(2)} • Now ${p.now.toFixed(2)}
+              </div>
+            </div>
+            <div class="text-sm font-semibold ${pnl >= 0 ? "text-emerald-300" : "text-rose-300"}">
+              ${pnl >= 0 ? "+" : ""}${pnl.toFixed(0)} pts
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function renderLeaderboard() {
+      const body = $("#leaderboard-body");
+      body.innerHTML = "";
+      mockForecasters.forEach((f, i) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-neutral-800/60 last:border-b-0";
+        tr.innerHTML = `
+          <td class="px-5 py-4 text-neutral-400">${i + 1}</td>
+          <td class="px-5 py-4 font-semibold">${f.name}</td>
+          <td class="px-5 py-4 text-neutral-300">${f.accuracy}</td>
+          <td class="px-5 py-4 text-neutral-300">${f.pnl.toLocaleString()}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ---- Wire up UI ----
+    $$(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => setActiveTab(btn.getAttribute("data-tab")));
+    });
+
+    $("#create-market-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const url = $("#tweet-url").value.trim();
+      if (!url) return;
+      showToast("Market created successfully!", "Your market is now live and open for trading (prototype).");
+      $("#tweet-url").value = "";
+    });
+
+    $("#modal-close").addEventListener("click", closeModal);
+    $("#trade-modal").addEventListener("click", (e) => {
+      if (e.target === $("#trade-modal") || e.target === $("#trade-modal").firstElementChild) closeModal();
+    });
+
+    $("#trade-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const size = parseInt($("#trade-size").value || "0", 10);
+      if (!selectedMarket || !tradeType || !size || size <= 0) return;
+
+      showToast("Trade placed!", `${tradeType.toUpperCase()} ${size} pts on "${selectedMarket.title}"`);
+      closeModal();
+      // This is a UI prototype: you can extend this to actually mutate positions, balances, etc.
+    });
+
+    // ---- Initial render ----
+    renderUser();
+    renderMarkets();
+    renderPositions();
+    renderLeaderboard();
+    setActiveTab("markets");
+  </script>
+</body>
+</html>
